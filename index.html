@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="initial-scale=1,maximum-scale=1, user-scalable=no">
+	<title>chat room</title>
+	<style>
+		*{
+			margin:0;
+			padding:0;
+		}
+		body, html{
+			height:100%;
+		}
+		.wrap{
+			height:100%;
+		}
+		.chat-form{
+			position:fixed;
+			bottom:0;
+			padding:10px;
+			box-sizing:border-box;
+			border:1px solid red;
+			border-radius:5px;
+			width:auto;
+			left:0;
+			right:0;
+			height:20%;
+			background-color:#fff;
+		}
+		form{
+			
+			
+		}
+
+		form div input{
+			height:20px;
+			border-radius: 3px;
+			border:1px solid #ccc;
+		}
+		form button{
+			width:80px;
+			height:30px;
+			margin-left:52px;
+			border-radius:5px;
+			color: #fff;
+			border:1px solid;
+			outline:none;
+		    background-color: #5bc0de;
+		    border-color: #46b8da;
+			
+		}
+		form button:hover{
+			color:#fff;
+			background-color: #31b0d5;
+    		border-color: #269abc;
+		}
+		form div label{
+			display:inline-block;
+			width:50px;
+		}
+		.form-group{
+			margin:10px 0;
+		}
+		div.show-message{
+			height:80%;
+			border:1px solid blue;
+			margin-bottom:200px;
+			box-sizing:border-box;
+			overflow:auto;
+		}
+
+		#show_msg::-webkit-scrollbar{
+			width:10px;
+			height:10px;
+		}
+		/* 两端滑动的按钮 */
+		div.show-message::-webkit-scrollbar-button{
+			/*display:none;*/
+			/*background-color:#fff;*/
+		}
+		/* 外层轨道 */
+		div.show-message::-webkit-scrollbar-track{
+			/*display:none;*/
+			border-radius: 10px;
+			background-color: rgba(25, 147, 147, 0.1);
+		}
+		/* 内层轨道 */
+		div.show-message::-webkit-scrollbar-track-piece{
+			/*display: none;*/
+		}
+		/* 可拖动部分 */
+		div.show-message::-webkit-scrollbar-thumb{
+			background-color:rgba(25, 147, 147, 0.2);
+        	border-radius:10px;
+		}
+		div.show-message::-webkit-scrollbar-corner{
+			background:#82AFFF;
+		}
+		div.show-message::-webkit-resizer{
+			background:#FF0BEE;
+		}
+
+
+		div.show-message p{
+			margin:5px;
+		}
+		div.show-message p span{
+			display: inline-block;
+
+		}
+		div.show-message p span.title{
+			
+			border:2px solid #eea236;
+			box-sizing:border-box;
+			border-radius:35px;
+			height: 35px;
+			width: 35px;
+			white-space:nowrap;
+			text-overflow:ellipsis;
+			overflow:hidden;
+			line-height: 35px;
+			text-align: center;
+			vertical-align: top;
+		}
+
+		div.show-message p span.content{
+			border:2px solid #eea236;
+			border-radius:5px;
+			line-height: 25px;
+			position:relative;
+			margin-left:10px;
+			margin-top:10px;
+			padding:2px 10px;
+			max-width:70%;
+			word-wrap:break-word;
+		}
+		div.show-message p span.content::before{
+			content:"";
+			display:inline-block;
+			border:5px solid;
+			border-color:#eea236 #eea236 transparent transparent;
+			position:absolute;
+			left:-12px;
+			top:5px;
+			
+		}
+	</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="show-message" id="show_msg">
+			<div></div>
+		</div>
+		<div class="chat-form">
+			<form>
+				<div class="form-group">
+					<label for="msg">id</label>
+					<input type="text" name="id" id="id_txt">
+				</div>
+				<div class="form-group">
+					<label for="msg">信息</label>
+					<input type="text" name="msg" id="msg_txt">
+				</div>
+				<div class="form-group">
+					<button type="button" id="btn">send</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<!--这里是应用服务器地址，所以路径不用管-->
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		let idTxt = document.getElementById('id_txt');
+		let msgTxt = document.getElementById('msg_txt');
+		let oBtn = document.getElementById('btn');
+		let oDiv = document.getElementById('show_msg').childNodes[1];
+		//如果只在本机测试，地址就填localhost即可，如果想要别人也能访问就要填你的ip了，或者放在服务器上
+		const socket = io("http://*.*.*.*:3003");
+		//发送消息
+		let sendMsg = () => {
+			if(!idTxt.value || !msgTxt.value){
+				alert('id和信息不能为空');
+				return;
+			}
+			let param = {
+				id: idTxt.value,
+				msg: msgTxt.value
+			}
+			socket.emit('reseive', param);
+			msgTxt.value = "";
+		}
+		oBtn.addEventListener('click', () => {
+			sendMsg();
+		}, false);
+
+		//回车可以发送信息
+		idTxt.addEventListener('keydown', (e) => {
+			if(e.keyCode == 13){
+				sendMsg();
+			}
+		})
+		msgTxt.addEventListener('keydown', (e) => {
+			if(e.keyCode == 13){
+				sendMsg();
+			}
+		})
+
+		socket.on('news', data => {
+			console.log('msg');
+			//直接插在对话框的最后
+			oDiv.insertAdjacentHTML('beforeend', `<p>
+				<span class="title">${data.id}</span>
+				<span class="content">${data.msg}</span>
+			</p>`);
+		});
+	</script>
+</body>
+</html>
